@@ -1,0 +1,30 @@
+name: Build Neon Pulse
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: swift build -c release
+      - name: Test
+        run: swift test
+      - name: Package app
+        run: |
+          APP="artifacts/Neon Pulse.app"
+          mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+          cp .build/release/NeonPulse "$APP/Contents/MacOS/NeonPulse"
+          cp AppInfo.plist "$APP/Contents/Info.plist"
+          cp .build/release/NeonPulse_NeonPulse.bundle/NeonShaders.metal "$APP/Contents/Resources/NeonShaders.metal"
+          chmod +x "$APP/Contents/MacOS/NeonPulse"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: neon-pulse-macos-app
+          path: artifacts/Neon Pulse.app
