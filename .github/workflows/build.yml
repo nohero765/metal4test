@@ -22,8 +22,18 @@ jobs:
           mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
           cp .build/release/NeonPulse "$APP/Contents/MacOS/NeonPulse"
           cp AppInfo.plist "$APP/Contents/Info.plist"
-          cp .build/release/NeonPulse_NeonPulse.bundle/NeonShaders.metal "$APP/Contents/Resources/NeonShaders.metal"
+          # Bundle layout so both Bundle.module and Bundle.main lookups work
+          if [ -d ".build/release/NeonPulse_NeonPulse.bundle" ]; then
+            cp -R .build/release/NeonPulse_NeonPulse.bundle "$APP/Contents/Resources/NeonPulse_NeonPulse.bundle"
+          fi
+          # Also plain file fallback
+          if [ -f ".build/release/NeonPulse_NeonPulse.bundle/NeonShaders.metal" ]; then
+            cp .build/release/NeonPulse_NeonPulse.bundle/NeonShaders.metal "$APP/Contents/Resources/NeonShaders.metal"
+          elif [ -f "Sources/NeonPulse/Resources/NeonShaders.metal" ]; then
+            cp Sources/NeonPulse/Resources/NeonShaders.metal "$APP/Contents/Resources/NeonShaders.metal"
+          fi
           chmod +x "$APP/Contents/MacOS/NeonPulse"
+          echo "Packaged resources:"; ls -R "$APP/Contents/Resources" | head -n 40
       - uses: actions/upload-artifact@v4
         with:
           name: neon-pulse-macos-app

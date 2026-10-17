@@ -29,7 +29,6 @@ final class NeonPulseApplication: NSObject, NSApplicationDelegate {
 
 final class GameView: MTKView {
     private let renderer: GameRenderer
-    private var lastTime: CFTimeInterval?
 
     init(frame frameRect: NSRect) {
         guard let device = MTLCreateSystemDefaultDevice() else {
@@ -44,31 +43,33 @@ final class GameView: MTKView {
         isPaused = false
         delegate = renderer
         wantsLayer = true
-        NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .leftMouseDown]) { event in
-            if event.type == .keyDown && event.keyCode == 49 {
-                self.renderer.handleJump()
-                return nil
-            }
-            if event.type == .keyDown && event.keyCode == 15 {
-                self.renderer.handleRestart()
-                return nil
-            }
-            if event.type == .leftMouseDown {
-                self.renderer.handleJump()
-            }
-            return event
-        }
     }
 
     required init(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    override func draw(_ dirtyRect: NSRect) {
-        let now = CACurrentMediaTime()
-        let delta = min(max(now - (lastTime ?? now), 0), 1 / 20)
-        lastTime = now
-        renderer.update(deltaTime: Float(delta))
-        super.draw(dirtyRect)
+    override var acceptsFirstResponder: Bool { true }
+    override var canBecomeKeyView: Bool { true }
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        window?.makeFirstResponder(self)
+    }
+
+    override func keyDown(with event: NSEvent) {
+        if event.keyCode == 49 {
+            renderer.handleJump()
+            return
+        }
+        if event.keyCode == 15 {
+            renderer.handleRestart()
+            return
+        }
+        super.keyDown(with: event)
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        renderer.handleJump()
     }
 }

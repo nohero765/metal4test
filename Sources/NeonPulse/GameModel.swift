@@ -128,6 +128,11 @@ public struct GameSimulation: Sendable {
         }
     }
 
+    public mutating func updateMenuPulse(deltaTime: Float) {
+        let delta = min(max(deltaTime, 0), 1 / 20)
+        player.jumpPulse = max(player.jumpPulse - delta * 3, 0)
+    }
+
     public mutating func update(deltaTime: Float) {
         guard player.alive, !player.completed else { return }
         let delta = min(max(deltaTime, 0), 1 / 20)
